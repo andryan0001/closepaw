@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import java.io.File
 
@@ -64,7 +66,10 @@ class ModelDiscoveryCache(context: Context) {
             )
             try {
                 file.parentFile?.mkdirs()
-                file.writeText(json.encodeToString(current))
+                // Explicit Map serializer: keeps working regardless of the
+                // kotlinx-serialization version's reified-inference rules.
+                val mapSerializer = MapSerializer(String.serializer(), Bucket.serializer())
+                file.writeText(json.encodeToString(mapSerializer, current))
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to write $FILE_NAME", e)
             }

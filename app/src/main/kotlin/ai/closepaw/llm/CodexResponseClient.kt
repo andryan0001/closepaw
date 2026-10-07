@@ -60,7 +60,9 @@ class CodexResponseClient(
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) handleErrorResponse(response)
 
-                val stream = response.body.byteStream()
+                val stream = (response.body
+                    ?: throw TransientException("Empty response body"))
+                    .byteStream()
                 val textContent = StringBuilder()
                 val toolCalls = mutableListOf<LLMToolCall>()
                 var responseId = "unknown"
@@ -155,7 +157,9 @@ class CodexResponseClient(
                         call.execute().use { response ->
                             if (!response.isSuccessful) handleErrorResponse(response)
 
-                            val stream = response.body.byteStream()
+                            val stream = (response.body
+                                ?: throw TransientException("Empty response body"))
+                                .byteStream()
                             val accumulator = CodexSseParser.ToolCallAccumulator()
                             var sawCompletion = false
                             var responseId: String? = null
@@ -254,7 +258,7 @@ class CodexResponseClient(
             .build()
 
     private fun handleErrorResponse(response: okhttp3.Response): Nothing {
-        val body = response.body.string()
+        val body = response.body?.string().orEmpty()
         val status = response.code
         val parsed = try { JSONObject(body) } catch (_: Exception) { null }
         val error = parsed?.optJSONObject("error")

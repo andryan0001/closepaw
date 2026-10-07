@@ -110,7 +110,7 @@ internal class HttpTermuxHealthProbe(
             try {
                 httpClient.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@withContext HealthProbe.Unavailable
-                    val json = JSONObject(response.body.string())
+                    val json = JSONObject(response.body?.string().orEmpty())
                     val identity = json.optString("identity")
                     val version = json.optString("version")
 

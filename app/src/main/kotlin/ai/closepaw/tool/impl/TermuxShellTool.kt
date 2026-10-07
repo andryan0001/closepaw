@@ -233,7 +233,7 @@ class TermuxShellTool(
         }
 
         private fun mapResponse(response: Response): ToolExecutionResult {
-            val body = response.body.string()
+            val body = response.body?.string().orEmpty()
             if (response.code == 200) {
                 return success(execPayload(JSONObject(body)))
             }
@@ -329,9 +329,11 @@ class TermuxShellTool(
                     override fun onResponse(call: Call, response: Response) {
                         responseRef.set(response)
                         if (cont.isActive) {
-                            cont.resume(response) { _, value, _ ->
-                                responseRef.compareAndSet(value, null)
-                                value.close()
+                            // Single-arg onCancellation overload: available on every
+                            // kotlinx-coroutines version (the 3-arg variant needs 1.9+).
+                            cont.resume(response) {
+                                responseRef.compareAndSet(response, null)
+                                response.close()
                             }
                         } else {
                             responseRef.compareAndSet(response, null)
