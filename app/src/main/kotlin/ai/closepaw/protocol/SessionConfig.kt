@@ -1,6 +1,5 @@
 package ai.closepaw.protocol
 
-import ai.closepaw.llm.LocalLLMConfig
 import ai.closepaw.perception.PerceptionConfig
 
 /**
@@ -15,12 +14,11 @@ data class SessionConfig(
         /** Approval mode for tool execution */
         val approvalMode: ApprovalMode = ApprovalMode.SMART,
         /**
-         * Canonical LLM runtime routing config (backend + local model params).
+         * Canonical LLM runtime routing config (cloud backend).
          */
         val llm: SessionLlmConfig =
                 SessionLlmConfig(
-                        backendType = LLMBackendType.OPENAI,
-                        localConfig = null
+                        backendType = LLMBackendType.OPENAI
                 ),
         /** Enable verbose debug logging */
         val debugMode: Boolean = false,
@@ -49,7 +47,6 @@ data class SessionConfig(
 /** Canonical LLM routing config used at runtime. */
 data class SessionLlmConfig(
         val backendType: LLMBackendType = LLMBackendType.OPENAI,
-        val localConfig: LocalLLMConfig? = null
 )
 
 /** Platform mode — which display the agent operates on. */
@@ -60,12 +57,10 @@ enum class PlatformMode {
         VIRTUAL_DISPLAY
 }
 
-/** LLM backend type - determines which LLM client to use. */
+/** LLM backend type — cloud only (on-device inference was removed). */
 enum class LLMBackendType {
-        /** Use OpenAI cloud API */
+        /** Use cloud LLM APIs */
         OPENAI,
-        /** Use local on-device LLM via Leap SDK */
-        LOCAL
 }
 
 /** ApprovalMode - How tool execution approvals are handled. */

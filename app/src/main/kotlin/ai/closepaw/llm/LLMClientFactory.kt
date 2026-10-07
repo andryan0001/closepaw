@@ -74,7 +74,7 @@ class LLMClientFactory(
             // Read generation inside the per-key critical section so a concurrent
             // authStore.set() bump either happens-before this block (we see the new
             // gen and rebuild) or happens-after (the next create() sees the bump).
-            val currentGen = if (store != null && provider != LLMProvider.LOCAL_LFM) {
+            val currentGen = if (store != null) {
                 store.generation(provider)
             } else 0L
 
@@ -146,10 +146,6 @@ class LLMClientFactory(
                 }
                 ChatCompletionClient(store.requireApiKey(LLMProvider.OTHER), otherBaseUrl)
             }
-            LLMProvider.LOCAL_LFM ->
-                    throw IllegalStateException(
-                            "LLMClientFactory does not build LFMLLMClient; use LFMLLMClient(context) directly."
-                    )
             LLMProvider.GEMINI_LIVE ->
                     throw IllegalStateException(
                             "LLMClientFactory does not build Gemini Live sessions; use GeminiLiveSession(platform) directly."

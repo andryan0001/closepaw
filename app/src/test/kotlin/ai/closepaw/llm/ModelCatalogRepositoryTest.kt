@@ -7,7 +7,6 @@ import ai.closepaw.app.AppSettings
 import ai.closepaw.app.AppSettingsStore
 import ai.closepaw.protocol.LLMBackendType
 import ai.closepaw.protocol.PlatformMode
-import ai.closepaw.ui.settings.AVAILABLE_LOCAL_MODELS
 import com.google.common.truth.Truth.assertThat
 import io.mockk.every
 import io.mockk.mockk
@@ -396,7 +395,6 @@ class ModelCatalogRepositoryTest {
         debugMode = AppSettingsStore.DEFAULT_DEBUG_MODE,
         perceptionMode = AppSettingsStore.DEFAULT_PERCEPTION_MODE,
         llmBackend = AppSettingsStore.DEFAULT_LLM_BACKEND,
-        localModel = AVAILABLE_LOCAL_MODELS.first(),
         platformMode = AppSettingsStore.DEFAULT_PLATFORM_MODE,
         traceEnabled = AppSettingsStore.DEFAULT_TRACE_ENABLED,
         browserScriptEnabled = AppSettingsStore.DEFAULT_BROWSER_SCRIPT_ENABLED,

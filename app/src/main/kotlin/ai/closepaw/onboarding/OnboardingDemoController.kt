@@ -90,8 +90,7 @@ class OnboardingDemoController(
                 val config = SessionConfig(
                     approvalMode = ApprovalMode.AUTO_APPROVE,
                     llm = SessionLlmConfig(
-                        backendType = LLMBackendType.OPENAI,
-                        localConfig = null
+                        backendType = LLMBackendType.OPENAI
                     ),
                     perceptionConfig = PerceptionConfig.AccessibilityOnly,
                     platformMode = PlatformMode.ACCESSIBILITY,
@@ -243,5 +242,4 @@ private fun LLMProvider.displayName(): String = when (this) {
     LLMProvider.OPENCODE -> "OpenCode"
     LLMProvider.GEMINI_LIVE -> "Gemini Live"
     LLMProvider.OTHER -> "Other"
-    LLMProvider.LOCAL_LFM -> "Local"
 }

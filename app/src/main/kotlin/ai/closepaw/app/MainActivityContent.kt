@@ -59,7 +59,6 @@ private fun rememberCapsuleBinding(): CapsuleBinding {
 internal fun MainActivityContent(
     viewModel: ChatViewModel,
     settingsState: AppSettingsState,
-    modelLoadingStatusHolder: ModelLoadingStatusHolder,
     modelCatalog: ModelCatalog,
     showSettings: Boolean,
     onShowSettingsChange: (Boolean) -> Unit,
@@ -162,13 +161,10 @@ internal fun MainActivityContent(
             ) {
                 SettingsSheet(
                     llmBackend = settingsState.llmBackend,
-                    onBackendChange = modelLoadingStatusHolder::updateBackend,
+                    onBackendChange = settingsState::updateBackend,
                     selectedModel = settingsState.selectedModel,
                     onModelChange = settingsState::updateModel,
                     modelCatalog = modelCatalog,
-                    selectedLocalModel = settingsState.localModel.id,
-                    onLocalModelChange = modelLoadingStatusHolder::updateLocalModel,
-                    modelLoadingStatus = modelLoadingStatusHolder.status,
                     perceptionMode = settingsState.perceptionMode,
                     onPerceptionModeChange = settingsState::updatePerceptionMode,
                     debugMode = settingsState.debugMode,

@@ -5,14 +5,11 @@ import android.os.Looper
 import android.util.Log
 import ai.closepaw.auth.AuthStore
 import ai.closepaw.auth.MissingCredential
-import ai.closepaw.llm.LFMLLMClient
 import ai.closepaw.llm.LLMClient
 import ai.closepaw.llm.LLMClientFactory
 import ai.closepaw.llm.LLMProvider
-import ai.closepaw.llm.LocalLLMConfig
 import ai.closepaw.llm.ModelCatalog
 import ai.closepaw.llm.ModelCatalogRepository
-import ai.closepaw.protocol.LLMBackendType
 import ai.closepaw.protocol.SessionConfig
 
 internal data class SessionLlmBootstrap(
@@ -33,7 +30,6 @@ internal object SessionLlmBootstrapper {
             baseUrlOverrides: Map<LLMProvider, String> = emptyMap()
     ): SessionLlmBootstrap {
         requireOffMainThread()
-        val backend = config.llm.backendType
         val baseCatalog = catalogRepository.catalog.value
 
         val modelCatalog = baseCatalog.withBaseUrlOverrides(baseUrlOverrides)
@@ -49,17 +45,9 @@ internal object SessionLlmBootstrapper {
                         baseUrlOverrides = baseUrlOverrides
                 )
 
-        val llmClient =
-                when (backend) {
-                    LLMBackendType.OPENAI -> {
-                        ensureRequiredCredentials(config, modelCatalog, authStore)
-                        llmClientFactory.create(config.mainModel)
-                    }
-                    LLMBackendType.LOCAL -> {
-                        val localConfig = config.llm.localConfig ?: LocalLLMConfig()
-                        LFMLLMClient(context, localConfig)
-                    }
-                }
+        // Cloud-only: the on-device backend was removed with the Leap SDK.
+        ensureRequiredCredentials(config, modelCatalog, authStore)
+        val llmClient = llmClientFactory.create(config.mainModel)
 
         return SessionLlmBootstrap(
                 modelCatalog = modelCatalog,
@@ -94,7 +82,6 @@ internal object SessionLlmBootstrapper {
             return
         }
         val provider = catalog.resolve(config.mainModel).provider
-        if (provider == LLMProvider.LOCAL_LFM) return
         // OPENCODE supports the anonymous/free lane — no stored key required.
         // The factory falls back to `Bearer public` for the `-free` models.
         if (provider == LLMProvider.OPENCODE) return

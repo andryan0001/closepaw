@@ -24,7 +24,6 @@ import ai.closepaw.llm.ModelCatalog
 import ai.closepaw.platform.AppManager
 import ai.closepaw.protocol.AppTier
 import ai.closepaw.protocol.ApprovalMode
-import ai.closepaw.protocol.LLMBackendType
 import ai.closepaw.protocol.PlatformMode
 import ai.closepaw.tool.AppClassifier
 import ai.closepaw.ui.theme.Fleuron
@@ -36,10 +35,8 @@ import kotlinx.coroutines.withContext
 
 @Composable
 internal fun SettingsHomePage(
-    llmBackend: LLMBackendType,
     selectedModel: String,
     modelOptions: List<Pair<String, String>>,
-    selectedLocalModel: String,
     modelCatalog: ModelCatalog,
     perceptionMode: String,
     isAccessibilityEnabled: Boolean,
@@ -65,7 +62,7 @@ internal fun SettingsHomePage(
             SectionHeader("Behavior")
             SettingsNavigationRow(
                 title = "LLM & Authentication",
-                subtitle = llmSubtitle(llmBackend, selectedModel, modelOptions, selectedLocalModel, modelCatalog),
+                subtitle = llmSubtitle(selectedModel, modelOptions, modelCatalog),
                 onClick = { onNavigate(SettingsPage.LLM_AUTH) }
             )
             SettingsNavigationRow(
@@ -114,22 +111,18 @@ internal fun SettingsHomePage(
 }
 
 private fun llmSubtitle(
-    llmBackend: LLMBackendType,
     selectedModel: String,
     modelOptions: List<Pair<String, String>>,
-    selectedLocalModel: String,
     modelCatalog: ModelCatalog,
-): String = if (llmBackend == LLMBackendType.LOCAL) {
-    AVAILABLE_LOCAL_MODELS.find { it.id == selectedLocalModel }?.displayName ?: selectedLocalModel
-} else {
+): String {
     val modelName = modelOptions.find { it.first == selectedModel }?.second ?: selectedModel
     val mode = modelCatalog.resolveOrNull(selectedModel)?.provider?.mode
     val authLabel = when (mode) {
         AuthMode.OAuth -> "OAuth"
         AuthMode.ApiKey -> "API key"
-        AuthMode.Local, null -> "API key"
+        null -> "API key"
     }
-    "$modelName · $authLabel"
+    return "$modelName · $authLabel"
 }
 
 private fun agentBehaviorSubtitle(

@@ -131,7 +131,6 @@ class SessionServicesProviderRoutingTest {
         debugMode = false,
         perceptionMode = ai.closepaw.app.AppSettingsStore.DEFAULT_PERCEPTION_MODE,
         llmBackend = ai.closepaw.app.AppSettingsStore.DEFAULT_LLM_BACKEND,
-        localModel = ai.closepaw.ui.settings.AVAILABLE_LOCAL_MODELS.first(),
         platformMode = ai.closepaw.app.AppSettingsStore.DEFAULT_PLATFORM_MODE,
         traceEnabled = false,
         browserScriptEnabled = false,

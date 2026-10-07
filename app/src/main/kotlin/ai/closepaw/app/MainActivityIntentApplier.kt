@@ -36,7 +36,6 @@ internal data class MainActivityIntentApplyResult(
 internal suspend fun applyIntentPayloadToSettings(
     payload: MainActivityIntentPayload,
     settingsState: AppSettingsState,
-    modelLoadingStatusHolder: ModelLoadingStatusHolder,
     authStore: AuthStore,
     isDebugBuild: Boolean,
     currentPendingTraceEnabled: Boolean?,
@@ -113,7 +112,7 @@ internal suspend fun applyIntentPayloadToSettings(
     // depended on the new key/url/modelId trio is fresh in `catalog.value`.
     if (otherChanged) invalidateCatalog()
     payload.backendType?.let {
-        modelLoadingStatusHolder.updateBackend(it)
+        settingsState.updateBackend(it)
         log("LLM backend set from intent: $it")
     }
     payload.perceptionMode?.let { mode ->

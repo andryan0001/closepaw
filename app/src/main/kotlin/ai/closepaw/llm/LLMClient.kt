@@ -7,13 +7,14 @@ import kotlinx.coroutines.flow.Flow
 /**
  * LLMClient - Abstract base class for LLM clients.
  * 
- * Defines the interface for interacting with LLMs (both cloud and local).
+ * Defines the interface for interacting with cloud LLMs.
  * Uses OpenAI Responses API types (ResponseInputItem, FunctionTool) as input
  * to minimize changes to callers (Turn.kt, ToolRegistry.kt).
  * 
  * Implementations:
- * - OpenAIResponseClient: Cloud-based using OpenAI Responses API
- * - LFMLLMClient: Local inference using LiquidAI Leap SDK
+ * - OpenAIResponseClient: OpenAI Responses API
+ * - ChatCompletionClient: OpenAI-compatible Chat Completions endpoints
+ * - CodexResponseClient: ChatGPT/Codex backend via OAuth
  * 
  * Note: We reuse OpenAI types for input but use our own LLMStreamEvent for
  * streaming output, since OpenAI's ResponseStreamEvent cannot be constructed
@@ -43,8 +44,7 @@ abstract class LLMClient {
      *   bounded-length calls such as compaction summaries. Cloud providers translate
      *   it into the appropriate provider field (Responses API: `max_output_tokens`;
      *   Chat Completions: `max_completion_tokens`). Providers without a native cap
-     *   (Codex backend forbids the field; LFM SDK has no knob) accept the value
-     *   but cannot enforce it.
+     *   (the Codex backend forbids the field) accept the value but cannot enforce it.
      * @return ResponsesResult containing text output and/or tool calls
      */
     abstract suspend fun chatWithTools(

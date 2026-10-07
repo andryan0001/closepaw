@@ -54,9 +54,6 @@ fun SettingsSheet(
     selectedModel: String,
     onModelChange: (String) -> Unit,
     modelCatalog: ModelCatalog,
-    selectedLocalModel: String,
-    onLocalModelChange: (LocalModelOption) -> Unit,
-    modelLoadingStatus: ModelLoadingStatus,
     perceptionMode: String,
     onPerceptionModeChange: (String) -> Unit,
     debugMode: Boolean,
@@ -139,10 +136,8 @@ fun SettingsSheet(
             ) { page ->
                 when (page) {
                     SettingsPage.HOME -> SettingsHomePage(
-                        llmBackend = llmBackend,
                         selectedModel = selectedModel,
                         modelOptions = catalogModelOptions(modelCatalog.all()),
-                        selectedLocalModel = selectedLocalModel,
                         modelCatalog = modelCatalog,
                         perceptionMode = perceptionMode,
                         isAccessibilityEnabled = isAccessibilityEnabled,
@@ -161,9 +156,6 @@ fun SettingsSheet(
                         selectedModel = selectedModel,
                         onModelChange = onModelChange,
                         modelCatalog = modelCatalog,
-                        selectedLocalModel = selectedLocalModel,
-                        onLocalModelChange = onLocalModelChange,
-                        modelLoadingStatus = modelLoadingStatus,
                         openAiAuthUiState = openAiAuthUiState,
                         onStartOAuth = onStartOAuth,
                         onCancelOAuth = onCancelOAuth,

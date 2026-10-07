@@ -31,9 +31,7 @@ import ai.closepaw.history.SessionHistoryManager
 import ai.closepaw.history.model.SessionInfo
 import ai.closepaw.history.model.isReloadable
 import ai.closepaw.history.storage.SessionStorage
-import ai.closepaw.llm.LFMLLMClient
 import ai.closepaw.llm.LLMProvider
-import ai.closepaw.llm.LocalLLMConfig
 import ai.closepaw.llm.ModelCatalog
 import ai.closepaw.llm.ModelCatalogRepository
 import ai.closepaw.llm.ModelCatalogRepositoryHolder
@@ -46,7 +44,6 @@ import ai.closepaw.onboarding.OnboardingViewModelFactory
 import ai.closepaw.onboarding.PermissionStateMonitor
 import ai.closepaw.perception.PerceptionConfig
 import ai.closepaw.protocol.ApprovalMode
-import ai.closepaw.protocol.LLMBackendType
 import ai.closepaw.protocol.SessionConfig
 import ai.closepaw.protocol.SessionLlmConfig
 import ai.closepaw.platform.OverlayTouchGate
@@ -58,7 +55,6 @@ import ai.closepaw.tool.AppClassifierHolder
 import ai.closepaw.ui.chat.ChatViewModel
 import ai.closepaw.ui.onboarding.OnboardingScreen
 import ai.closepaw.ui.overlay.visualizer.ActionVisualizerManager
-import ai.closepaw.ui.settings.ModelLoadingStatus
 import ai.closepaw.ui.theme.ClosePawTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +102,6 @@ class MainActivity : ComponentActivity() {
     }
     private lateinit var settingsState: AppSettingsState
     private lateinit var modelCatalogRepo: ModelCatalogRepository
-    private lateinit var modelLoadingStatusHolder: ModelLoadingStatusHolder
     private var pendingTraceEnabled: Boolean? = null
     private var pendingTraceRunId: String? = null
     private var pendingExcludedTools: Set<String> = emptySet()
@@ -160,7 +155,6 @@ class MainActivity : ComponentActivity() {
         settingsState = AppSettingsState.create(applicationContext)
         settingsState.load()
         modelCatalogRepo = ModelCatalogRepositoryHolder.get(applicationContext)
-        modelLoadingStatusHolder = ModelLoadingStatusHolder(applicationContext, lifecycleScope, settingsState)
 
         // Onboarding: migrate + check completion
         onboardingStore = OnboardingStore(applicationContext)
@@ -250,7 +244,6 @@ class MainActivity : ComponentActivity() {
                 MainActivityContent(
                     viewModel = viewModel,
                     settingsState = settingsState,
-                    modelLoadingStatusHolder = modelLoadingStatusHolder,
                     modelCatalog = catalogSnapshot,
                     showSettings = showSettings,
                     onShowSettingsChange = {
@@ -390,7 +383,6 @@ class MainActivity : ComponentActivity() {
             val applyResult = applyIntentPayloadToSettings(
                 payload = payload,
                 settingsState = settingsState,
-                modelLoadingStatusHolder = modelLoadingStatusHolder,
                 authStore = authStore,
                 isDebugBuild = BuildConfig.DEBUG,
                 currentPendingTraceEnabled = pendingTraceEnabled,
@@ -559,11 +551,6 @@ class MainActivity : ComponentActivity() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to create session", e)
-                if (settingsState.llmBackend == LLMBackendType.LOCAL) {
-                    modelLoadingStatusHolder.update(
-                            ModelLoadingStatus.Error(e.message ?: "Unknown error")
-                    )
-                }
                 val errMsg = e.message ?: "Unknown error"
                 val deepLink = when (e) {
                     is ai.closepaw.auth.MissingCredential,
@@ -697,18 +684,6 @@ class MainActivity : ComponentActivity() {
             visualizer: ActionVisualizerManager?,
             touchGate: OverlayTouchGate?
     ): AgentSession {
-        val localConfig =
-                if (settingsState.llmBackend == LLMBackendType.LOCAL) {
-                    LocalLLMConfig(
-                            modelSlug = settingsState.localModel.modelSlug,
-                            quantizationSlug = settingsState.localModel.quantizationSlug
-                    )
-                } else null
-
-        if (settingsState.llmBackend == LLMBackendType.LOCAL) {
-            modelLoadingStatusHolder.update(ModelLoadingStatus.Loading)
-        }
-
         val sessionConfig =
                 SessionConfig(
                         approvalMode = pendingApprovalMode ?: settingsState.approvalMode,
@@ -719,7 +694,6 @@ class MainActivity : ComponentActivity() {
                         llm =
                                 SessionLlmConfig(
                                         backendType = settingsState.llmBackend,
-                                        localConfig = localConfig
                                 ),
                         perceptionConfig =
                                 when (settingsState.perceptionMode) {
@@ -745,19 +719,6 @@ class MainActivity : ComponentActivity() {
                             overlayTouchGate = touchGate,
                     )
                 }
-
-        if (settingsState.llmBackend == LLMBackendType.LOCAL) {
-            val localClient = session.getServices().llmClient as? LFMLLMClient
-            if (localClient == null) {
-                modelLoadingStatusHolder.update(
-                        ModelLoadingStatus.Error("Local LLM client unavailable")
-                )
-            } else {
-                localClient.loadModel { state ->
-                    modelLoadingStatusHolder.update(state.toUiStatus())
-                }
-            }
-        }
 
         return session
     }

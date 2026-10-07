@@ -43,16 +43,6 @@ class MainActivityModelValidationTest {
     }
 
     @Test
-    fun `returns empty when local backend selected`() {
-        val missing = findMissingCloudKeys(
-            settings(backend = LLMBackendType.LOCAL),
-            catalog,
-            emptyAuthStore(),
-        )
-        assertThat(missing).isEmpty()
-    }
-
-    @Test
     fun `flags main model with missing OpenAI key`() {
         val missing = findMissingCloudKeys(settings(), catalog, emptyAuthStore())
         assertThat(missing).hasSize(1)

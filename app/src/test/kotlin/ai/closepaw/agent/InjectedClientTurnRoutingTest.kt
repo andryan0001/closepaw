@@ -27,11 +27,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-class LocalBackendTurnRoutingTest {
+class InjectedClientTurnRoutingTest {
 
         @Test
-        fun `local backend uses local llm client without cloud api keys`() = runTest {
-                val localClient = LocalBackendTestLLMClient()
+        fun `injected client serves turns without cloud api keys`() = runTest {
+                val injectedClient = InjectedTestLLMClient()
                 val catalog =
                         ModelCatalog.fromJson(
                                 """{"gpt-5.2":{"display_name":"GPT-5.2","provider":"OPENAI_API","api":"response","model_id":"gpt-5.2"}}"""
@@ -39,7 +39,7 @@ class LocalBackendTurnRoutingTest {
 
                 val sessionConfig =
                         SessionConfig(
-                                llm = SessionLlmConfig(backendType = LLMBackendType.LOCAL),
+                                llm = SessionLlmConfig(backendType = LLMBackendType.OPENAI),
                                 actionDelayMs = 0
                         )
                 val toolRegistry = ToolRegistry()
@@ -54,7 +54,7 @@ class LocalBackendTurnRoutingTest {
                                 appClassifier = AppClassifier(emptyMap()),
                                 platform = FakeAndroidPlatform(),
                                 config = sessionConfig,
-                                llmClient = localClient,
+                                llmClient = injectedClient,
                                 modelCatalog = catalog,
                                 llmClientFactory =
                                         LLMClientFactory(
@@ -70,7 +70,7 @@ class LocalBackendTurnRoutingTest {
                                 config =
                                         AgentExecutionConfig(
                                                 goal = "Say done",
-                                                sessionId = SessionId("local-routing-test"),
+                                                sessionId = SessionId("injected-routing-test"),
                                                 uiSettleDelayMs = 0,
                                                 systemPrompt = "You are a test agent.",
                                                 modelName = "gpt-5.2"
@@ -84,11 +84,11 @@ class LocalBackendTurnRoutingTest {
                 val stopReason = agent.run()
                 assertThat(stopReason).isInstanceOf(AgentStopReason.GoalAchieved::class.java)
                 assertThat((stopReason as AgentStopReason.GoalAchieved).message).isEqualTo("done")
-                assertThat(localClient.streamingCalls).isEqualTo(1)
+                assertThat(injectedClient.streamingCalls).isEqualTo(1)
         }
 }
 
-private class LocalBackendTestLLMClient : LLMClient() {
+private class InjectedTestLLMClient : LLMClient() {
         var streamingCalls: Int = 0
 
         override suspend fun chatWithTools(
@@ -101,7 +101,7 @@ private class LocalBackendTestLLMClient : LLMClient() {
                 return ResponsesResult(
                         textContent = "done",
                         toolCalls = emptyList(),
-                        responseId = "local"
+                        responseId = "injected"
                 )
         }
 
@@ -112,7 +112,7 @@ private class LocalBackendTestLLMClient : LLMClient() {
                 model: String
         ): Flow<LLMStreamEvent> = flow {
                 streamingCalls += 1
-                emit(LLMStreamEvent.Created("local"))
+                emit(LLMStreamEvent.Created("injected"))
                 emit(LLMStreamEvent.TextDelta("done"))
                 emit(LLMStreamEvent.Completed)
         }

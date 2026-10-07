@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 class ModelCatalogTest {
@@ -462,8 +463,9 @@ class ModelCatalogTest {
     }
 
     @Test
-    fun `contextWindow falls back to 8_000 for local backend when JSON omits it`() {
-        val json = """
+    fun `contextWindow rejects unknown provider`() {
+        try {
+            ModelCatalog.fromJson("""
             {
               "lfm": {
                 "display_name": "Local LFM",
@@ -472,9 +474,11 @@ class ModelCatalogTest {
                 "model_id": "lfm-local"
               }
             }
-        """.trimIndent()
-        val entry = ModelCatalog.fromJson(json).resolve("lfm")
-        assertEquals(8_000, entry.contextWindow)
+            """.trimIndent())
+            fail("Expected IllegalArgumentException for unknown provider LOCAL_LFM")
+        } catch (e: IllegalArgumentException) {
+            assertTrue(e.message!!.contains("Unknown provider"))
+        }
     }
 
     @Test(expected = IllegalArgumentException::class)

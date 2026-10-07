@@ -37,8 +37,7 @@ enum class ApiType {
  * @property apiKeyEnv Env var name for API key. Null = use provider default.
  * @property supportsVision Whether this model accepts image inputs. Default true for cloud models.
  * @property contextWindow Maximum input+output token capacity of the model. Always > 0. When the
- * JSON omits `context_window`, the fallback is 8_000 for [AuthMode.Local] providers and 128_000
- * for everything else.
+ * JSON omits `context_window`, the fallback is 128_000.
  * @property created Unix-seconds creation timestamp from upstream `/models`. `0L` for seed
  * entries that don't carry one — picker sort treats 0 as oldest.
  */
@@ -214,12 +213,7 @@ internal data class JsonModelEntry(
                                     "Unknown api type '$api' for model '$name'. Valid: response, chat"
                             )
                 }
-        val resolvedContextWindow =
-                contextWindow
-                        ?: when (resolvedProvider.mode) {
-                            AuthMode.Local -> 8_000
-                            else -> 128_000
-                        }
+        val resolvedContextWindow = contextWindow ?: 128_000
         require(resolvedContextWindow > 0) {
             "context_window must be > 0 for model '$name' (got $resolvedContextWindow)"
         }

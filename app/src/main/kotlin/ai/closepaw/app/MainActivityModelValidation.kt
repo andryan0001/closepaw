@@ -57,9 +57,6 @@ internal fun findMissingCloudKeys(
     val entry = modelCatalog.resolveOrNull(modelName)
         ?: return listOf(MissingCredentialTarget(LLMProvider.OPENAI_API, "Unknown model: $modelName"))
     val provider = entry.provider
-    if (provider == LLMProvider.LOCAL_LFM) return emptyList()
-    // OPENCODE free lane needs no key — never block the session on credentials.
-    if (provider == LLMProvider.OPENCODE) return emptyList()
     if (authStore.has(provider)) return emptyList()
 
     val label = when (provider) {
@@ -69,7 +66,6 @@ internal fun findMissingCloudKeys(
         LLMProvider.OPENCODE -> return emptyList()
         LLMProvider.GEMINI_LIVE -> "Gemini API key required"
         LLMProvider.OTHER -> "API key required"
-        LLMProvider.LOCAL_LFM -> return emptyList()
     }
     return listOf(MissingCredentialTarget(provider, "${entry.displayName}: $label"))
 }

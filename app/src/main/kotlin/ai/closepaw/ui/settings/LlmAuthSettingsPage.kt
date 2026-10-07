@@ -1,6 +1,5 @@
 package ai.closepaw.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +14,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -58,43 +56,25 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-enum class LlmAuthTab { SIGN_IN, API_KEY, LOCAL }
+enum class LlmAuthTab { SIGN_IN, API_KEY }
 
-/**
- * Surface the Local tab in LLM & Authentication settings.
- *
- * Off because LFM 1.2B Q4 on a phone CPU takes 1-3 min to emit the first tool
- * call with the current 12-tool agent schema — it works, but it's unusable.
- * Flip to true to re-expose once we have a smaller agent-capable model or a
- * chat-only path. The rest of the local stack (LFMLLMClient, auto-download,
- * LocalTabContent) stays wired so flipping this is a one-line change.
- */
-private const val LOCAL_TAB_ENABLED = false
-
-private val VISIBLE_TABS: List<LlmAuthTab> =
-    LlmAuthTab.entries.filter { LOCAL_TAB_ENABLED || it != LlmAuthTab.LOCAL }
-
-private fun LlmAuthTab.visibleOrFallback(): LlmAuthTab =
-    if (this in VISIBLE_TABS) this else LlmAuthTab.API_KEY
+private val VISIBLE_TABS: List<LlmAuthTab> = LlmAuthTab.entries
 
 private val LlmAuthTab.label: String
     get() = when (this) {
         LlmAuthTab.SIGN_IN -> "Sign In"
         LlmAuthTab.API_KEY -> "API Key"
-        LlmAuthTab.LOCAL -> "Local"
     }
 
 private val LlmAuthTab.mode: AuthMode
     get() = when (this) {
         LlmAuthTab.SIGN_IN -> AuthMode.OAuth
         LlmAuthTab.API_KEY -> AuthMode.ApiKey
-        LlmAuthTab.LOCAL -> AuthMode.Local
     }
 
 private fun AuthMode.toTab(): LlmAuthTab = when (this) {
     AuthMode.OAuth -> LlmAuthTab.SIGN_IN
     AuthMode.ApiKey -> LlmAuthTab.API_KEY
-    AuthMode.Local -> LlmAuthTab.LOCAL
 }
 
 /** Default provider per tab when the current selected model's mode doesn't match the tab. */
@@ -102,7 +82,6 @@ private val LlmAuthTab.defaultProvider: LLMProvider
     get() = when (this) {
         LlmAuthTab.SIGN_IN -> LLMProvider.OPENAI_CODEX
         LlmAuthTab.API_KEY -> LLMProvider.OPENAI_API
-        LlmAuthTab.LOCAL -> LLMProvider.LOCAL_LFM
     }
 
 /** Providers available in the API Key tab sub-selector. */
@@ -121,9 +100,6 @@ internal fun LlmAuthSettingsPage(
     selectedModel: String,
     onModelChange: (String) -> Unit,
     modelCatalog: ModelCatalog,
-    selectedLocalModel: String,
-    onLocalModelChange: (LocalModelOption) -> Unit,
-    modelLoadingStatus: ModelLoadingStatus,
     openAiAuthUiState: OpenAiAuthUiState,
     onStartOAuth: () -> Unit,
     onCancelOAuth: () -> Unit,
@@ -138,21 +114,17 @@ internal fun LlmAuthSettingsPage(
     onOtherModelIdChange: (String) -> Unit = {},
 ) {
     // Initial tab: explicit caller request wins; else derive from selected model's provider mode.
-    // When the Local tab is hidden, any LOCAL landing target falls back to API_KEY.
     val modelMode = modelCatalog.resolveOrNull(selectedModel)?.provider?.mode
-    var selectedTab by rememberSaveable(initialAuthTab, modelMode, llmBackend) {
-        val raw = when {
-            initialAuthTab != null -> initialAuthTab.toTab()
-            modelMode == AuthMode.OAuth -> LlmAuthTab.SIGN_IN
-            llmBackend == LLMBackendType.LOCAL -> LlmAuthTab.LOCAL
-            else -> LlmAuthTab.API_KEY
-        }
-        mutableStateOf(if (raw == LlmAuthTab.LOCAL && !LOCAL_TAB_ENABLED) LlmAuthTab.API_KEY else raw)
+    var selectedTab by rememberSaveable(initialAuthTab, modelMode) {
+        mutableStateOf(
+            when {
+                initialAuthTab != null -> initialAuthTab.toTab()
+                modelMode == AuthMode.OAuth -> LlmAuthTab.SIGN_IN
+                else -> LlmAuthTab.API_KEY
+            }
+        )
     }
-    val activeTab = selectedTab.visibleOrFallback()
-    LaunchedEffect(activeTab, selectedTab) {
-        if (activeTab != selectedTab) selectedTab = activeTab
-    }
+    val activeTab = selectedTab
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -181,11 +153,6 @@ internal fun LlmAuthSettingsPage(
 
     fun commitApiKey(action: () -> Unit) {
         onBackendChange(LLMBackendType.OPENAI)
-        action()
-    }
-
-    fun commitLocal(action: () -> Unit) {
-        onBackendChange(LLMBackendType.LOCAL)
         action()
     }
 
@@ -250,11 +217,6 @@ internal fun LlmAuthSettingsPage(
                             onOtherModelIdChange(modelId)
                         }
                     },
-                )
-                LlmAuthTab.LOCAL -> LocalTabContent(
-                    selectedLocalModel = selectedLocalModel,
-                    onLocalModelChange = { commitLocal { onLocalModelChange(it) } },
-                    modelLoadingStatus = modelLoadingStatus
                 )
             }
             Fleuron()
@@ -518,7 +480,7 @@ private fun ApiKeyTabContent(
             LLMProvider.OPENROUTER -> "OpenRouter Key"
             LLMProvider.GEMINI_LIVE -> "Gemini API Key"
             LLMProvider.OTHER -> "API Key"
-            LLMProvider.OPENAI_CODEX, LLMProvider.LOCAL_LFM -> null
+            LLMProvider.OPENAI_CODEX -> null
         }
         if (label != null) {
             ApiKeyField(
@@ -595,37 +557,6 @@ internal fun shouldAutoFlipToOtherCustom(
     if (entry.baseUrl != normalizedUrl || entry.modelId != trimmedModelId) return false
     if (selectedModel == ModelCatalogRepository.OTHER_CUSTOM_NAME) return false
     return true
-}
-
-@Composable
-private fun LocalTabContent(
-    selectedLocalModel: String,
-    onLocalModelChange: (LocalModelOption) -> Unit,
-    modelLoadingStatus: ModelLoadingStatus
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.errorContainer,
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Text(
-            text = "Experimental: local models are slow and underpowered, " +
-                "and will not reliably drive the agent. Use a cloud model for real work.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.padding(MaterialTheme.closePaw.spacing.md)
-        )
-    }
-    Spacer(modifier = Modifier.height(16.dp))
-    SettingsSection(title = "Local Model") {
-        Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.closePaw.spacing.md)) {
-            LocalModelDropdown(
-                selectedModelId = selectedLocalModel,
-                onModelChange = onLocalModelChange
-            )
-            ModelLoadingStatusIndicator(status = modelLoadingStatus)
-        }
-    }
 }
 
 /**

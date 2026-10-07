@@ -1,13 +1,12 @@
 package ai.closepaw.llm
 
 /**
- * How a provider is authenticated. Drives UI grouping (OAuth / API Key / Local tabs) and
- * factory routing.
+ * How a provider is authenticated. Drives UI grouping (OAuth / API Key tabs)
+ * and factory routing.
  */
 enum class AuthMode {
     OAuth,
     ApiKey,
-    Local,
 }
 
 /**
@@ -15,7 +14,7 @@ enum class AuthMode {
  * pair so the catalog, factory, and credential store can all key off a single enum value.
  *
  * `defaultApiKeyEnv` and `defaultBaseUrl` are retained for the current factory/catalog wiring;
- * OAuth and Local entries populate them with placeholders (unused on their code paths).
+ * OAuth entries populate them with placeholders (unused on their code paths).
  */
 enum class LLMProvider(
     val mode: AuthMode,
@@ -84,13 +83,6 @@ enum class LLMProvider(
         defaultApiKeyEnv = "OTHER_API_KEY",
         defaultBaseUrl = null,
     ),
-
-    /** On-device LFM runtime (Leap SDK). No network credential. */
-    LOCAL_LFM(
-        mode = AuthMode.Local,
-        defaultApiKeyEnv = "LOCAL_LFM",
-        defaultBaseUrl = null,
-    ),
 }
 
 /** Human-readable label for UI display. */
@@ -102,5 +94,4 @@ val LLMProvider.displayLabel: String
         LLMProvider.OPENCODE -> "OpenCode"
         LLMProvider.GEMINI_LIVE -> "Gemini 3.8 Live"
         LLMProvider.OTHER -> "Other"
-        LLMProvider.LOCAL_LFM -> "Local"
     }

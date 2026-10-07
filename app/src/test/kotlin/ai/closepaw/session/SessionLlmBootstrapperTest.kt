@@ -148,7 +148,6 @@ class SessionLlmBootstrapperTest {
                 debugMode = false,
                 perceptionMode = "accessibility_only",
                 llmBackend = LLMBackendType.OPENAI,
-                localModel = ai.closepaw.ui.settings.AVAILABLE_LOCAL_MODELS.first(),
                 platformMode = ai.closepaw.protocol.PlatformMode.ACCESSIBILITY,
                 traceEnabled = false,
                 browserScriptEnabled = false,

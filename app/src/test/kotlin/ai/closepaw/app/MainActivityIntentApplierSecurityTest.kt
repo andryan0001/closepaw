@@ -8,8 +8,6 @@ import ai.closepaw.protocol.ApprovalMode
 import ai.closepaw.ui.settings.BrowserScriptToggleError
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -19,8 +17,6 @@ import org.junit.Test
 class MainActivityIntentApplierSecurityTest {
 
     private val settingsState = AppSettingsState(mockk(relaxed = true))
-    private val modelLoadingStatusHolder =
-        ModelLoadingStatusHolder(mockk(relaxed = true), CoroutineScope(Dispatchers.Unconfined), settingsState)
     private val authStore = AuthStore(mockk(relaxed = true), prefsProvider = { FakeSharedPreferences() })
 
     @Test
@@ -50,7 +46,6 @@ class MainActivityIntentApplierSecurityTest {
         val result = applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = false,
             currentPendingTraceEnabled = null,
@@ -99,7 +94,6 @@ class MainActivityIntentApplierSecurityTest {
         val result = applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = false,
             currentPendingTraceEnabled = true,
@@ -145,7 +139,6 @@ class MainActivityIntentApplierSecurityTest {
         val result = applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -177,7 +170,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -201,7 +193,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -227,9 +218,8 @@ class MainActivityIntentApplierSecurityTest {
 
             applyIntentPayloadToSettings(
                 payload = payload,
-                settingsState = settingsState,
-                modelLoadingStatusHolder = modelLoadingStatusHolder,
-                authStore = authStore,
+            settingsState = settingsState,
+            authStore = authStore,
                 isDebugBuild = true,
                 currentPendingTraceEnabled = null,
                 currentPendingTraceRunId = null,
@@ -277,7 +267,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -309,7 +298,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -356,7 +344,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,
@@ -406,7 +393,6 @@ class MainActivityIntentApplierSecurityTest {
         applyIntentPayloadToSettings(
             payload = payload,
             settingsState = settingsState,
-            modelLoadingStatusHolder = modelLoadingStatusHolder,
             authStore = authStore,
             isDebugBuild = true,
             currentPendingTraceEnabled = null,

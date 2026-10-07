@@ -23,7 +23,6 @@ import ai.closepaw.memory.MemoryRecaller
 import ai.closepaw.memory.MemoryStore
 import ai.closepaw.platform.AndroidPlatform
 import ai.closepaw.protocol.SessionConfig
-import ai.closepaw.protocol.SessionLlmConfig
 import ai.closepaw.termux.TermuxBridgeManager
 import ai.closepaw.termux.TermuxBridgeStatus
 import ai.closepaw.termux.TermuxCapabilitySnapshot
@@ -78,12 +77,8 @@ private class TermuxBridgeManagerSessionBridge(
  *
  * Usage:
  * ```kotlin
- * // For OpenAI backend:
+ * // For cloud backends:
  * val services = SessionServices.create(config, platform, authStore = AuthStore(context), context = context, ...)
- *
- * // For local LLM backend:
- * val localConfig = config.copy(llm = SessionLlmConfig(backendType = LLMBackendType.LOCAL))
- * val services = SessionServices.create(localConfig, platform, authStore = null, context = context, ...)
  * ```
  */
 class SessionServices internal constructor(
@@ -119,7 +114,7 @@ class SessionServices internal constructor(
          * @param platform Android platform abstraction
          * @param authStore Unified credential store (OAuth + API keys). Null for test factories.
          * @param baseUrlOverrides Debug-only per-provider base URL overrides.
-         * @param context Android context (required for LOCAL backend for model downloading)
+         * @param context Android context for session-scoped services
          * @return Fully initialized SessionServices
          */
         fun create(

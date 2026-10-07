@@ -78,7 +78,7 @@ class ModelCatalogRepository(
      * `LLMProvider.OPENROUTER.defaultBaseUrl!!`; for [LLMProvider.OTHER] the
      * validated `otherBaseUrl` setting. Other providers are rejected because
      * their `/models` payloads are either too thin (OpenAI) or unavailable
-     * (LOCAL_LFM, OPENAI_CODEX).
+     * (OPENAI_CODEX).
      */
     suspend fun refresh(provider: LLMProvider, key: String, baseUrl: String) {
         require(provider == LLMProvider.OPENROUTER || provider == LLMProvider.OTHER) {

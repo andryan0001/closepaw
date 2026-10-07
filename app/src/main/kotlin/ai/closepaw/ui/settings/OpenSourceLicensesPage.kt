@@ -237,12 +237,6 @@ private fun LicensesPreamble() {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Text(
-                text = "Note: ai.liquid.leap:leap-sdk is proprietary (Leap Terms of Use); " +
-                    "see NOTICE in the repository root for redistribution implications.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

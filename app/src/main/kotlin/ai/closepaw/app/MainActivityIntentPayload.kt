@@ -60,7 +60,6 @@ data class MainActivityIntentPayload(
                     intent.getStringExtra(MainActivity.EXTRA_LLM_BACKEND)?.lowercase()?.let {
                             backend ->
                         when (backend) {
-                            "local" -> LLMBackendType.LOCAL
                             "openai" -> LLMBackendType.OPENAI
                             else -> null
                         }

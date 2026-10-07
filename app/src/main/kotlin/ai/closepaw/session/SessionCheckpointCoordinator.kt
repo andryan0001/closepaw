@@ -8,7 +8,6 @@ import ai.closepaw.history.model.ConversationConfigSnapshot
 import ai.closepaw.history.model.HistoryItemConverter
 import ai.closepaw.history.model.SessionRuntimeSnapshot
 import ai.closepaw.history.model.TodoSnapshot
-import ai.closepaw.llm.LocalLLMConfig
 import ai.closepaw.perception.PerceptionConfig
 import ai.closepaw.protocol.ApprovalMode
 import ai.closepaw.protocol.LLMBackendType
@@ -88,8 +87,11 @@ internal fun SessionConfig.toConfigSnapshot() = ConversationConfigSnapshot(
     perceptionMode = perceptionConfig.toModeString(),
     platformMode = platformMode.name,
     llmBackendType = llm.backendType.name,
-    localModelSlug = llm.localConfig?.modelSlug,
-    localQuantizationSlug = llm.localConfig?.quantizationSlug,
+    // Legacy local-model slug fields: on-device inference was removed, so new
+    // snapshots always write null. The fields stay on
+    // ConversationConfigSnapshot so old checkpoints still deserialize.
+    localModelSlug = null,
+    localQuantizationSlug = null,
     actionDelayMs = actionDelayMs,
     approvalMode = approvalMode.name,
     debugMode = debugMode,
@@ -121,14 +123,6 @@ internal fun ConversationConfigSnapshot.toSessionConfig(): SessionConfig = Sessi
             Log.w(SNAPSHOT_TAG, "Unknown LLMBackendType in snapshot: $llmBackendType")
             LLMBackendType.OPENAI
         },
-        localConfig = if (llmBackendType == LLMBackendType.LOCAL.name) {
-            LocalLLMConfig(
-                modelSlug = localModelSlug ?: LocalLLMConfig().modelSlug,
-                quantizationSlug = localQuantizationSlug ?: LocalLLMConfig().quantizationSlug
-            )
-        } else {
-            null
-        }
     ),
     actionDelayMs = actionDelayMs,
     approvalMode = try { ApprovalMode.valueOf(approvalMode) } catch (_: Exception) {

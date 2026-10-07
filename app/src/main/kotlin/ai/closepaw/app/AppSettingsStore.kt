@@ -5,8 +5,6 @@ import ai.closepaw.protocol.ApprovalMode
 import ai.closepaw.protocol.AppTier
 import ai.closepaw.protocol.LLMBackendType
 import ai.closepaw.protocol.PlatformMode
-import ai.closepaw.ui.settings.AVAILABLE_LOCAL_MODELS
-import ai.closepaw.ui.settings.LocalModelOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +20,6 @@ data class AppSettings(
         val debugMode: Boolean,
         val perceptionMode: String,
         val llmBackend: LLMBackendType,
-        val localModel: LocalModelOption,
         val platformMode: PlatformMode,
         val traceEnabled: Boolean,
         val browserScriptEnabled: Boolean,
@@ -42,7 +39,6 @@ class AppSettingsStore(private val context: Context) {
         private const val KEY_SCREENSHOT_INPUT = "screenshot_input"
         private const val KEY_PERCEPTION_MODE = "perception_mode"
         private const val KEY_LLM_BACKEND = "llm_backend"
-        private const val KEY_LOCAL_MODEL_ID = "local_model_id"
         private const val KEY_PLATFORM_MODE = "platform_mode"
         private const val KEY_USER_APP_OVERRIDES = "user_app_overrides"
         private const val KEY_TRACE_ENABLED = "trace_enabled"
@@ -58,7 +54,6 @@ class AppSettingsStore(private val context: Context) {
         const val DEFAULT_DEBUG_MODE = false
         const val DEFAULT_PERCEPTION_MODE = "accessibility_only"
         val DEFAULT_LLM_BACKEND = LLMBackendType.OPENAI
-        val DEFAULT_LOCAL_MODEL: LocalModelOption = AVAILABLE_LOCAL_MODELS.first()
         val DEFAULT_PLATFORM_MODE = PlatformMode.ACCESSIBILITY
         const val DEFAULT_TRACE_ENABLED = false
         const val DEFAULT_BROWSER_SCRIPT_ENABLED = false
@@ -102,10 +97,6 @@ class AppSettingsStore(private val context: Context) {
                     DEFAULT_LLM_BACKEND
                 }
 
-        val localModelId = prefs.getString(KEY_LOCAL_MODEL_ID, null)
-        val localModel = localModelId?.let { id ->
-            AVAILABLE_LOCAL_MODELS.find { it.id == id }
-        } ?: DEFAULT_LOCAL_MODEL
         val platformModeName = prefs.getString(KEY_PLATFORM_MODE, DEFAULT_PLATFORM_MODE.name)
                 ?: DEFAULT_PLATFORM_MODE.name
         val platformMode = try {
@@ -137,7 +128,6 @@ class AppSettingsStore(private val context: Context) {
                 debugMode = debugMode,
                 perceptionMode = perceptionMode,
                 llmBackend = llmBackend,
-                localModel = localModel,
                 platformMode = platformMode,
                 traceEnabled = traceEnabled,
                 browserScriptEnabled = browserScriptEnabled,
@@ -225,10 +215,6 @@ class AppSettingsStore(private val context: Context) {
 
     fun saveApprovalMode(value: ApprovalMode) {
         prefs().edit().putString(KEY_APPROVAL_MODE, value.name).apply()
-    }
-
-    fun saveLocalModel(model: LocalModelOption) {
-        prefs().edit().putString(KEY_LOCAL_MODEL_ID, model.id).apply()
     }
 
     // ===== User app overrides =====

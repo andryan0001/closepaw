@@ -105,7 +105,7 @@ class Turn(
             } catch (e: ContextWindowExceededException) {
                 e
             } catch (e: Exception) {
-                // Some providers (and the local LFM client) surface overflow as a
+                // Some providers surface overflow as a
                 // Failed event whose message bubbles up as an unclassified
                 // RuntimeException. Re-classify here so we route to compaction
                 // instead of treating it as a generic terminal error.

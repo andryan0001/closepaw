@@ -13,14 +13,12 @@ plugins {
 
 android {
     namespace = "ai.closepaw"
-    compileSdk = 36  // Required by Leap SDK 0.9.2 (depends on androidx.core:core-ktx:1.17.0)
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ai.closepaw"
-        // minSdk 26 (Android 8.0): the LiquidAI Leap SDK needs API 31+ at
-        // *runtime* (native libs), so on-device inference is gated to API 31+
-        // in LFMLLMClient — but the JAR ships no manifest minSdk, so the
-        // merger accepts 26 and cloud/co-pilot modes work on older devices.
+        // minSdk 26 (Android 8.0): cloud and co-pilot modes work on older
+        // devices; desugared java.time/streams cover the API gaps.
         minSdk = 26
         targetSdk = 36
         versionCode = (project.findProperty("VERSION_CODE") as String).toInt()
@@ -29,7 +27,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // arm64-v8a only: all target devices are 64-bit ARM phones, and the
-        // bundled native libs (Leap, Conscrypt, BouncyCastle loaders) ship
+        // bundled native libs (Conscrypt, BouncyCastle loaders) ship
         // multi-ABI .so files that bloat the APK. Filtering here drops every
         // other ABI from all APKs (debug + release).
         ndk {
@@ -241,10 +239,6 @@ dependencies {
 
     // OkHttp — used by CodexResponseClient for raw SSE streaming to chatgpt.com
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
-    // LiquidAI Leap SDK for local LLM inference
-    // Version 0.9.2 includes manifest.LeapDownloader with loadModel(modelSlug, quantizationSlug) API
-    implementation("ai.liquid.leap:leap-sdk:0.9.2")
     
     // Kotlin Serialization for session persistence
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
