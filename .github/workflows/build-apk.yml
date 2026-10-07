@@ -33,9 +33,6 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Grant Execute Permission to Gradle Wrapper
         run: chmod +x ./gradlew
 
