@@ -251,6 +251,15 @@ object ModelDiscovery {
                 readTimeout = READ_TIMEOUT_MS
                 setRequestProperty("Authorization", "Bearer $apiKey")
                 setRequestProperty("Accept", "application/json")
+                if (baseUrl.contains("opencode.ai", ignoreCase = true)) {
+                    // Zen/Go gateways expect first-party client headers (see
+                    // OpenCodeSession) — without them `/models` probes get
+                    // anti-bot rejections even with a good key.
+                    for ((name, value) in OpenCodeSession.requestHeaders()) {
+                        if (name.equals("Authorization", ignoreCase = true)) continue
+                        setRequestProperty(name, value)
+                    }
+                }
             }
             val code = connection.responseCode
             if (code !in 200..299) {

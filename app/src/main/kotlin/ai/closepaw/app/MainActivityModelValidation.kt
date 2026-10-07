@@ -58,12 +58,15 @@ internal fun findMissingCloudKeys(
         ?: return listOf(MissingCredentialTarget(LLMProvider.OPENAI_API, "Unknown model: $modelName"))
     val provider = entry.provider
     if (provider == LLMProvider.LOCAL_LFM) return emptyList()
+    // OPENCODE free lane needs no key — never block the session on credentials.
+    if (provider == LLMProvider.OPENCODE) return emptyList()
     if (authStore.has(provider)) return emptyList()
 
     val label = when (provider) {
         LLMProvider.OPENAI_CODEX -> "ChatGPT sign-in required"
         LLMProvider.OPENAI_API -> "OpenAI API key required"
         LLMProvider.OPENROUTER -> "OpenRouter API key required"
+        LLMProvider.OPENCODE -> return emptyList()
         LLMProvider.OTHER -> "API key required"
         LLMProvider.LOCAL_LFM -> return emptyList()
     }

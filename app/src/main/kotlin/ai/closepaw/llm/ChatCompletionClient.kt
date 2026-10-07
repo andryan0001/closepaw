@@ -25,10 +25,17 @@ import java.util.concurrent.atomic.AtomicReference
  *
  * Non-streaming: client.chat().completions().create()
  * Streaming:     client.chat().completions().createStreaming()
+ *
+ * @param extraHeadersProvider optional per-request header supplier (e.g. the
+ * OpenCode client-disguise set). Invoked fresh for every request build so
+ * per-invocation values (request UUIDs) stay unique across retries/stream
+ * attempts. Applied via `putAdditionalHeader`, which the OpenAI SDK forwards
+ * as HTTP headers.
  */
 class ChatCompletionClient(
     apiKey: String,
-    baseUrl: String? = null
+    baseUrl: String? = null,
+    private val extraHeadersProvider: (() -> Map<String, String>)? = null,
 ) : LLMClient() {
 
     companion object {
@@ -286,6 +293,10 @@ class ChatCompletionClient(
             .model(ChatModel.of(model))
             .messages(messages)
             .tools(chatTools)
+
+        extraHeadersProvider?.invoke()?.forEach { (name, value) ->
+            builder.putAdditionalHeader(name, value)
+        }
 
         maxOutputTokens?.let { builder.maxCompletionTokens(it) }
 

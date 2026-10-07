@@ -75,5 +75,33 @@
     "api": "response",
     "model_id": "gpt-5.5",
     "context_window": 400000
+  },
+  "muse-spark-1.3-contributor-free": {
+    "display_name": "Muse Spark 1.3 (OpenCode)",
+    "provider": "OPENCODE",
+    "api": "chat",
+    "model_id": "muse-spark-1.3-contributor-free",
+    "context_window": 128000
+  },
+  "deepseek-v4-flash-free": {
+    "display_name": "DeepSeek V4 Flash (OpenCode)",
+    "provider": "OPENCODE",
+    "api": "chat",
+    "model_id": "deepseek-v4-flash-free",
+    "context_window": 128000
+  },
+  "claude-3-7-sonnet": {
+    "display_name": "Claude 3.7 Sonnet (OpenCode)",
+    "provider": "OPENCODE",
+    "api": "chat",
+    "model_id": "claude-3-7-sonnet",
+    "context_window": 200000
+  },
+  "mimo-v2.5-free": {
+    "display_name": "MiMo V2.5 (OpenCode)",
+    "provider": "OPENCODE",
+    "api": "chat",
+    "model_id": "mimo-v2.5-free",
+    "context_window": 128000
   }
 }

@@ -28,6 +28,9 @@ class HttpLlmCredentialValidator(
         private const val TAG = "LlmCredValidator"
         const val DEFAULT_CONNECT_TIMEOUT_MS = 5_000
         const val DEFAULT_READ_TIMEOUT_MS = 20_000
+
+        internal fun isOpenCodeEndpoint(baseUrl: String): Boolean =
+            baseUrl.contains("opencode.ai", ignoreCase = true)
     }
 
     override suspend fun validate(key: String): LlmCredentialValidator.Result =
@@ -49,6 +52,15 @@ class HttpLlmCredentialValidator(
                     readTimeout = readTimeoutMs
                     setRequestProperty("Authorization", "Bearer $key")
                     setRequestProperty("Content-Type", "application/json")
+                    if (isOpenCodeEndpoint(baseUrl)) {
+                        // Zen/Go gateways expect first-party client headers —
+                        // without them validation probes get anti-bot rejections
+                        // even with a good key. See OpenCodeSession.
+                        for ((name, value) in ai.closepaw.llm.OpenCodeSession.requestHeaders()) {
+                            if (name.equals("Authorization", ignoreCase = true)) continue
+                            setRequestProperty(name, value)
+                        }
+                    }
                     doOutput = true
                 }
 

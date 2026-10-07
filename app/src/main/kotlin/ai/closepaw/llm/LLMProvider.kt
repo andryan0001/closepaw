@@ -44,6 +44,21 @@ enum class LLMProvider(
     ),
 
     /**
+     * OpenCode Zen — opencode.ai (OpenAI-compatible Chat Completions).
+     * Default tier is Zen (`https://opencode.ai/zen/v1/`); the Go tier
+     * (`https://opencode.ai/zen/go/v1/`) is selectable via a provider base-URL
+     * override. Auth is optional: an empty store falls back to the
+     * anonymous/free lane (`Bearer public`), so no key is required for the
+     * `-free` models. Requests carry the OpenCode web-client disguise headers
+     * (see [OpenCodeInterceptor]) to avoid anti-bot rejections.
+     */
+    OPENCODE(
+        mode = AuthMode.ApiKey,
+        defaultApiKeyEnv = "OPENCODE_API_KEY",
+        defaultBaseUrl = "https://opencode.ai/zen/v1/",
+    ),
+
+    /**
      * User-configured OpenAI-compatible endpoint. Base URL and model id live in
      * [ai.closepaw.app.AppSettingsState] (`otherBaseUrl`, `otherModelId`) and are
      * surfaced as a synthesized `other-custom` catalog entry. No hardcoded URL — the
@@ -70,6 +85,7 @@ val LLMProvider.displayLabel: String
         LLMProvider.OPENAI_API -> "OpenAI"
         LLMProvider.OPENAI_CODEX -> "OpenAI (ChatGPT sign-in)"
         LLMProvider.OPENROUTER -> "OpenRouter"
+        LLMProvider.OPENCODE -> "OpenCode"
         LLMProvider.OTHER -> "Other"
         LLMProvider.LOCAL_LFM -> "Local"
     }

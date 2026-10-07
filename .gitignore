@@ -53,8 +53,12 @@ captures/
 
 # Keystore files — never commit. Keep real signing material outside the repo;
 # these patterns are belt-and-suspenders against accidental in-tree copies.
+# Exception: signing/debug.keystore is a shared debug-only key committed
+# deliberately so every CI/local debug APK carries the same signature and
+# installs as an in-place update instead of failing with a signature mismatch.
 *.jks
 *.keystore
+!signing/debug.keystore
 *.password
 
 # External native build folder generated in Android Studio 2.2 and later

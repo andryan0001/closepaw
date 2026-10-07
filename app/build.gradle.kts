@@ -31,7 +31,7 @@ android {
     // touch the repo. `scripts/release-build.sh` requires the KEYSTORE_* env
     // vars before shipping builds. If env is unset (e.g. local debug builds, IDE sync),
     // we fall back to null and the release variant simply won't be signed —
-    // debug builds use Android's default debug keystore and are unaffected.
+    // debug builds use the committed deterministic keystore below and are unaffected.
     signingConfigs {
         create("release") {
             val keystorePath = System.getenv("KEYSTORE_PATH")
@@ -42,10 +42,26 @@ android {
                 keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
             }
         }
+        // Deterministic debug signing: `signing/debug.keystore` is committed to
+        // the repo so every APK produced by GitHub Actions (and every local
+        // build) shares the exact same signature. Without this, each fresh CI
+        // runner generates its own random debug key and consecutive installs
+        // fail with signature-mismatch errors instead of updating in place.
+        // Credentials follow the Android SDK debug-keystore convention.
+        create("debug") {
+            val debugKeystore = rootProject.file("signing/debug.keystore")
+            if (debugKeystore.exists()) {
+                storeFile = debugKeystore
+                storePassword = "android"
+                keyAlias = "androiddebugkey"
+                keyPassword = "android"
+            }
+        }
     }
 
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             val evalSsl = project.findProperty("insecureSslForEval")?.toString()?.toBoolean() ?: false
             buildConfigField("boolean", "INSECURE_SSL_FOR_EVAL", evalSsl.toString())
         }

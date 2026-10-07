@@ -936,6 +936,7 @@ class MainActivity : ComponentActivity() {
             LLMProvider.OPENAI_API,
             LLMProvider.OPENAI_CODEX,
             LLMProvider.OPENROUTER,
+            LLMProvider.OPENCODE,
         )
         if (providers.any { authStore.has(it) }) return true
         if (settings.selectedModel != AppSettingsStore.DEFAULT_MODEL) return true

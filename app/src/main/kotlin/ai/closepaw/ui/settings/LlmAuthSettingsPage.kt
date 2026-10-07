@@ -106,7 +106,12 @@ private val LlmAuthTab.defaultProvider: LLMProvider
     }
 
 /** Providers available in the API Key tab sub-selector. */
-private val API_KEY_PROVIDERS = listOf(LLMProvider.OPENAI_API, LLMProvider.OPENROUTER, LLMProvider.OTHER)
+private val API_KEY_PROVIDERS = listOf(
+    LLMProvider.OPENAI_API,
+    LLMProvider.OPENCODE,
+    LLMProvider.OPENROUTER,
+    LLMProvider.OTHER,
+)
 
 @Composable
 internal fun LlmAuthSettingsPage(
@@ -442,39 +447,46 @@ private fun ApiKeyTabContent(
     }
 
     SettingsSection(title = "Cloud Model") {
-        if (selectedProvider == LLMProvider.OPENROUTER || selectedProvider == LLMProvider.OTHER) {
+        if (selectedProvider == LLMProvider.OPENROUTER ||
+            selectedProvider == LLMProvider.OTHER ||
+            selectedProvider == LLMProvider.OPENCODE
+        ) {
             SearchableGroupedModelPicker(
                 entries = modelCatalog.modelsFor(selectedProvider),
                 selectedName = selectedModel,
                 onSelect = onModelChange,
             )
             Spacer(modifier = Modifier.height(8.dp))
-            val pickerContext = LocalContext.current
-            val repo = remember(pickerContext) { ModelCatalogRepositoryHolder.get(pickerContext) }
-            val discoveryState by repo.discoveryState.collectAsStateWithLifecycle()
-            val refreshScope = rememberCoroutineScope()
-            RefreshModelsRow(
-                provider = selectedProvider,
-                apiKey = apiKeyText,
-                otherBaseUrl = otherBaseUrlText,
-                discoveryState = discoveryState,
-                allowDebugHttp = BuildConfig.DEBUG,
-                onRefresh = {
-                    // Pass the LIVE typed URL to the repo, not the persisted
-                    // value: the 300ms persist debounce can lag the typed
-                    // text and would otherwise route the current key to the
-                    // STALE persisted URL (Codex review CRITICAL #1). For
-                    // OPENROUTER, the URL is seed-fixed.
-                    val baseUrl = when (selectedProvider) {
-                        LLMProvider.OPENROUTER -> LLMProvider.OPENROUTER.defaultBaseUrl.orEmpty()
-                        LLMProvider.OTHER ->
-                            OtherBaseUrlValidator.validate(otherBaseUrlText).getOrNull().orEmpty()
-                        else -> ""
-                    }
-                    if (baseUrl.isBlank()) return@RefreshModelsRow
-                    refreshScope.launch { repo.refresh(selectedProvider, apiKeyText, baseUrl) }
-                },
-            )
+            if (selectedProvider == LLMProvider.OPENROUTER ||
+                selectedProvider == LLMProvider.OTHER
+            ) {
+                val pickerContext = LocalContext.current
+                val repo = remember(pickerContext) { ModelCatalogRepositoryHolder.get(pickerContext) }
+                val discoveryState by repo.discoveryState.collectAsStateWithLifecycle()
+                val refreshScope = rememberCoroutineScope()
+                RefreshModelsRow(
+                    provider = selectedProvider,
+                    apiKey = apiKeyText,
+                    otherBaseUrl = otherBaseUrlText,
+                    discoveryState = discoveryState,
+                    allowDebugHttp = BuildConfig.DEBUG,
+                    onRefresh = {
+                        // Pass the LIVE typed URL to the repo, not the persisted
+                        // value: the 300ms persist debounce can lag the typed
+                        // text and would otherwise route the current key to the
+                        // STALE persisted URL (Codex review CRITICAL #1). For
+                        // OPENROUTER, the URL is seed-fixed.
+                        val baseUrl = when (selectedProvider) {
+                            LLMProvider.OPENROUTER -> LLMProvider.OPENROUTER.defaultBaseUrl.orEmpty()
+                            LLMProvider.OTHER ->
+                                OtherBaseUrlValidator.validate(otherBaseUrlText).getOrNull().orEmpty()
+                            else -> ""
+                        }
+                        if (baseUrl.isBlank()) return@RefreshModelsRow
+                        refreshScope.launch { repo.refresh(selectedProvider, apiKeyText, baseUrl) }
+                    },
+                )
+            }
         } else {
             CloudModelDropdown(
                 selectedModel = selectedModel,
@@ -486,9 +498,11 @@ private fun ApiKeyTabContent(
     Spacer(modifier = Modifier.height(20.dp))
 
     // Provider-linked API key field — value backed by AuthStore.
+    // OPENCODE is optional: blank uses the anonymous/free lane.
     SettingsSection(title = "API Key") {
         val label = when (selectedProvider) {
             LLMProvider.OPENAI_API -> "OpenAI Key"
+            LLMProvider.OPENCODE -> "OpenCode Key (optional)"
             LLMProvider.OPENROUTER -> "OpenRouter Key"
             LLMProvider.OTHER -> "API Key"
             LLMProvider.OPENAI_CODEX, LLMProvider.LOCAL_LFM -> null
@@ -502,6 +516,17 @@ private fun ApiKeyTabContent(
                     onApiKeyPersist(selectedProvider, key)
                 }
             )
+            if (selectedProvider == LLMProvider.OPENCODE) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Leave blank to use the free lane. " +
+                        "Presets: muse-spark-1.3-contributor-free (default), " +
+                        "deepseek-v4-flash-free, claude-3-7-sonnet, mimo-v2.5-free. " +
+                        "Add your own key for the metered Zen / Go tiers.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 

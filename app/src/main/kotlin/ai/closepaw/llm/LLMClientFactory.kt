@@ -44,6 +44,19 @@ class LLMClientFactory(
     private val clientCache = ConcurrentHashMap<String, Entry>()
 
     /**
+     * Shared OpenCode disguise state. One instance per factory so every
+     * OPENCODE client built here correlates to the same session UUID for the
+     * lifetime of the factory (one factory per agent run via
+     * `SessionLlmBootstrapper`, hence stable per conversation). The API key
+     * supplier reads the live [AuthStore] so key rotations apply without a
+     * rebuild; a missing key yields null and the interceptor omits
+     * `Authorization` (anonymous/free lane).
+     */
+    private val openCodeInterceptor = OpenCodeInterceptor {
+        runCatching { authStore?.requireApiKey(LLMProvider.OPENCODE) }.getOrNull()
+    }
+
+    /**
      * Create (or return cached) LLMClient for the given model name.
      *
      * @throws IllegalArgumentException if model is not in the catalog
@@ -107,6 +120,20 @@ class LLMClientFactory(
                     )
             LLMProvider.OPENROUTER ->
                     ChatCompletionClient(store.requireApiKey(LLMProvider.OPENROUTER), baseUrl)
+            LLMProvider.OPENCODE -> {
+                // Anonymous/free lane: a missing key falls back to `public`
+                // (opencode2api convention — no Authorization or Bearer public
+                // routes to the `-free` Zen models) instead of throwing
+                // MissingCredential, so free models work with no setup.
+                val apiKey = runCatching { store.requireApiKey(LLMProvider.OPENCODE) }
+                    .getOrNull()?.trim()?.takeIf { it.isNotEmpty() }
+                    ?: OpenCodeInterceptor.ANONYMOUS_API_KEY
+                ChatCompletionClient(
+                    apiKey = apiKey,
+                    baseUrl = baseUrl,
+                    extraHeadersProvider = { openCodeInterceptor.requestHeaders() },
+                )
+            }
             LLMProvider.OTHER -> {
                 // Hard-require a non-blank baseUrl at this boundary. If anything upstream
                 // produced a malformed OTHER entry (synth missing settings, stale catalog),
@@ -131,5 +158,15 @@ class LLMClientFactory(
         Log.d(TAG, "Cleaning up ${clientCache.size} cached clients")
         clientCache.values.forEach { it.client.cleanup() }
         clientCache.clear()
+    }
+
+    /**
+     * Start a new OpenCode conversation scope. The shared [OpenCodeInterceptor]
+     * (and the SDK header supplier reading from it) switches to a fresh
+     * session UUID; call at conversation/agent-run start for prompt-cache
+     * affinity per conversation.
+     */
+    fun renewOpenCodeSession() {
+        openCodeInterceptor.renewSession()
     }
 }

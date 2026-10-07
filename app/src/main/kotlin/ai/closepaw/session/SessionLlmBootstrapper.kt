@@ -95,6 +95,9 @@ internal object SessionLlmBootstrapper {
         }
         val provider = catalog.resolve(config.mainModel).provider
         if (provider == LLMProvider.LOCAL_LFM) return
+        // OPENCODE supports the anonymous/free lane — no stored key required.
+        // The factory falls back to `Bearer public` for the `-free` models.
+        if (provider == LLMProvider.OPENCODE) return
         if (!authStore.has(provider)) {
             throw MissingCredential(provider)
         }
