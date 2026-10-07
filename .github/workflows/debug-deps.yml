@@ -1,0 +1,31 @@
+name: Debug Dependency Resolution
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deps:
+    name: Dump resolved dependency versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission to Gradle Wrapper
+        run: chmod +x ./gradlew
+
+      - name: OkHttp resolution on main compile classpath
+        run: ./gradlew :app:dependencyInsight --configuration debugCompileClasspath --dependency com.squareup.okhttp3:okhttp --no-configuration-cache
+
+      - name: kotlinx-serialization-json resolution on main compile classpath
+        run: ./gradlew :app:dependencyInsight --configuration debugCompileClasspath --dependency org.jetbrains.kotlinx:kotlinx-serialization-json --no-configuration-cache
