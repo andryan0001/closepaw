@@ -25,6 +25,14 @@ android {
         versionName = project.findProperty("VERSION_NAME") as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // arm64-v8a only: all target devices are 64-bit ARM phones, and the
+        // bundled native libs (Leap, Conscrypt, BouncyCastle loaders) ship
+        // multi-ABI .so files that bloat the APK. Filtering here drops every
+        // other ABI from all APKs (debug + release).
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     // Release signing reads from environment so the keystore + password never
