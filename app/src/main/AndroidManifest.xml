@@ -21,6 +21,12 @@
     <!-- Runtime notification permission required on Android 13+ (API 33+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Leap's Android bridge AAR declares minSdk 31, but its classes only
+         load through LFMLLMClient, which refuses to construct below API 31
+         with a clear error. Overriding lets cloud/co-pilot modes install and
+         run on API 26+ while on-device inference stays API 31+. -->
+    <uses-sdk tools:overrideLibrary="ai.liquid.leap" />
+
     <!-- Package visibility: Allow querying launchable apps and Termux RUN_COMMAND (Android 11+) -->
     <queries>
         <package android:name="com.termux" />
