@@ -48,7 +48,9 @@ android {
         // runner generates its own random debug key and consecutive installs
         // fail with signature-mismatch errors instead of updating in place.
         // Credentials follow the Android SDK debug-keystore convention.
-        create("debug") {
+        // NOTE: AGP pre-creates a `debug` signing config, so we reconfigure it
+        // via getByName instead of create (which would throw "already exists").
+        named("debug") {
             val debugKeystore = rootProject.file("signing/debug.keystore")
             if (debugKeystore.exists()) {
                 storeFile = debugKeystore
