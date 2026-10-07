@@ -8,6 +8,11 @@
     <!-- Shizuku permission for virtual display operations -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Gemini Live co-pilot: screen casting via MediaProjection runs as a
+         foreground service, which requires both the base service permission
+         and the media-projection foreground-service type declaration. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
     <!-- Package visibility: Allow querying launchable apps and Termux RUN_COMMAND (Android 11+) -->
     <queries>

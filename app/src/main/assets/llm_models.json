@@ -103,5 +103,19 @@
     "api": "chat",
     "model_id": "mimo-v2.5-free",
     "context_window": 128000
+  },
+  "gemini-3.8-live": {
+    "display_name": "Gemini 3.8 Live",
+    "provider": "GEMINI_LIVE",
+    "api": "chat",
+    "model_id": "models/gemini-3.8-live",
+    "context_window": 1000000
+  },
+  "gemini-3.8-live-extended-thinking": {
+    "display_name": "Gemini 3.8 Live Extended Thinking",
+    "provider": "GEMINI_LIVE",
+    "api": "chat",
+    "model_id": "models/gemini-3.8-live-extended-thinking",
+    "context_window": 1000000
   }
 }

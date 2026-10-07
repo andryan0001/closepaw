@@ -110,6 +110,7 @@ private val API_KEY_PROVIDERS = listOf(
     LLMProvider.OPENAI_API,
     LLMProvider.OPENCODE,
     LLMProvider.OPENROUTER,
+    LLMProvider.GEMINI_LIVE,
     LLMProvider.OTHER,
 )
 
@@ -493,6 +494,17 @@ private fun ApiKeyTabContent(
                 modelOptions = modelOptions,
                 onModelChange = onModelChange
             )
+            if (selectedProvider == LLMProvider.GEMINI_LIVE) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Real-time co-pilot over a live WebSocket: streams mic audio " +
+                        "and ~1 FPS screen frames, speaks back, and acts on screen " +
+                        "via mobile_action. Needs microphone and screen-capture " +
+                        "consent when a session starts.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
     Spacer(modifier = Modifier.height(20.dp))
@@ -504,6 +516,7 @@ private fun ApiKeyTabContent(
             LLMProvider.OPENAI_API -> "OpenAI Key"
             LLMProvider.OPENCODE -> "OpenCode Key (optional)"
             LLMProvider.OPENROUTER -> "OpenRouter Key"
+            LLMProvider.GEMINI_LIVE -> "Gemini API Key"
             LLMProvider.OTHER -> "API Key"
             LLMProvider.OPENAI_CODEX, LLMProvider.LOCAL_LFM -> null
         }

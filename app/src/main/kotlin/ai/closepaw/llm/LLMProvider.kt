@@ -59,6 +59,20 @@ enum class LLMProvider(
     ),
 
     /**
+     * Gemini Live — real-time multimodal co-pilot over a persistent
+     * BidiGenerateContent WebSocket (see `ai.closepaw.gemini.live`).
+     * Not an [LLMClient]: [LLMClientFactory] rejects it with a descriptive
+     * error and live sessions are built via `GeminiLiveSession` instead.
+     * Catalog entries exist so the Settings picker and credential checks can
+     * key off this provider like any other cloud backend.
+     */
+    GEMINI_LIVE(
+        mode = AuthMode.ApiKey,
+        defaultApiKeyEnv = "GEMINI_API_KEY",
+        defaultBaseUrl = null,
+    ),
+
+    /**
      * User-configured OpenAI-compatible endpoint. Base URL and model id live in
      * [ai.closepaw.app.AppSettingsState] (`otherBaseUrl`, `otherModelId`) and are
      * surfaced as a synthesized `other-custom` catalog entry. No hardcoded URL — the
@@ -86,6 +100,7 @@ val LLMProvider.displayLabel: String
         LLMProvider.OPENAI_CODEX -> "OpenAI (ChatGPT sign-in)"
         LLMProvider.OPENROUTER -> "OpenRouter"
         LLMProvider.OPENCODE -> "OpenCode"
+        LLMProvider.GEMINI_LIVE -> "Gemini 3.8 Live"
         LLMProvider.OTHER -> "Other"
         LLMProvider.LOCAL_LFM -> "Local"
     }

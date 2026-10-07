@@ -218,6 +218,12 @@ dependencies {
     // OpenAI SDK
     implementation("com.openai:openai-java:4.14.0")
 
+    // Gson — JSON codec for the Gemini Live (BidiGenerateContent) WebSocket
+    // protocol models. The rest of the app uses kotlinx.serialization /
+    // org.json; Gson is scoped to ai.closepaw.gemini.live because the Live
+    // wire format needs lenient Map<String, Any> args decoding.
+    implementation("com.google.code.gson:gson:2.11.0")
+
     // OkHttp — used by CodexResponseClient for raw SSE streaming to chatgpt.com
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     

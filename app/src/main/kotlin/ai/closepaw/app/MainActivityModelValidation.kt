@@ -67,6 +67,7 @@ internal fun findMissingCloudKeys(
         LLMProvider.OPENAI_API -> "OpenAI API key required"
         LLMProvider.OPENROUTER -> "OpenRouter API key required"
         LLMProvider.OPENCODE -> return emptyList()
+        LLMProvider.GEMINI_LIVE -> "Gemini API key required"
         LLMProvider.OTHER -> "API key required"
         LLMProvider.LOCAL_LFM -> return emptyList()
     }

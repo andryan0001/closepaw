@@ -241,6 +241,7 @@ private fun LLMProvider.displayName(): String = when (this) {
     LLMProvider.OPENAI_CODEX -> "OpenAI"
     LLMProvider.OPENROUTER -> "OpenRouter"
     LLMProvider.OPENCODE -> "OpenCode"
+    LLMProvider.GEMINI_LIVE -> "Gemini Live"
     LLMProvider.OTHER -> "Other"
     LLMProvider.LOCAL_LFM -> "Local"
 }

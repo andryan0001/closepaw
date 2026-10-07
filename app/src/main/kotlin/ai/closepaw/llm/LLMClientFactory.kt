@@ -150,6 +150,10 @@ class LLMClientFactory(
                     throw IllegalStateException(
                             "LLMClientFactory does not build LFMLLMClient; use LFMLLMClient(context) directly."
                     )
+            LLMProvider.GEMINI_LIVE ->
+                    throw IllegalStateException(
+                            "LLMClientFactory does not build Gemini Live sessions; use GeminiLiveSession(platform) directly."
+                    )
         }
     }
 
