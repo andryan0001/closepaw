@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -13,6 +14,12 @@
          and the media-projection foreground-service type declaration. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- Gemini Live voice I/O declares the microphone foreground-service type on API 34+. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- Keep the CPU awake during long automation sessions. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Runtime notification permission required on Android 13+ (API 33+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Package visibility: Allow querying launchable apps and Termux RUN_COMMAND (Android 11+) -->
     <queries>
@@ -75,6 +82,16 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/agent_accessibility_config" />
         </service>
+
+        <!-- Foreground service hosting Gemini Live screen-cast + voice sessions.
+             foregroundServiceType is honored on API 29+; tools:targetApi keeps
+             the manifest merger quiet on builders using older compile SDKs. -->
+        <service
+            android:name=".service.ClosePawLiveService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection|microphone"
+            tools:targetApi="upside_down_cake" />
 
         <!-- Shizuku content provider for binder forwarding -->
         <provider

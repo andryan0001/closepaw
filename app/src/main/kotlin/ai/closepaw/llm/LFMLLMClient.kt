@@ -97,6 +97,18 @@ class LFMLLMClient(
     @Volatile
     private var modelLoadingState: ModelLoadingState = ModelLoadingState.NotLoaded
 
+    init {
+        // The Leap SDK's native libraries require Android 12 (API 31+). The
+        // app's minSdk is 26 so cloud/co-pilot modes work on older devices —
+        // fail fast here (instead of an obscure UnsatisfiedLinkError later)
+        // if anyone constructs the local client below API 31.
+        require(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            "On-device inference requires Android 12 (API 31+); " +
+                "this device runs API ${android.os.Build.VERSION.SDK_INT}. " +
+                "Use a cloud model instead."
+        }
+    }
+
     /**
      * Model loading state for UI feedback.
      */

@@ -17,9 +17,11 @@ android {
 
     defaultConfig {
         applicationId = "ai.closepaw"
-        // Required by LiquidAI Leap SDK for local inference.
-        // If we need to support Android < 12, consider a cloud-only flavor.
-        minSdk = 31
+        // minSdk 26 (Android 8.0): the LiquidAI Leap SDK needs API 31+ at
+        // *runtime* (native libs), so on-device inference is gated to API 31+
+        // in LFMLLMClient — but the JAR ships no manifest minSdk, so the
+        // merger accepts 26 and cloud/co-pilot modes work on older devices.
+        minSdk = 26
         targetSdk = 36
         versionCode = (project.findProperty("VERSION_CODE") as String).toInt()
         versionName = project.findProperty("VERSION_NAME") as String
@@ -91,6 +93,8 @@ android {
     }
 
     compileOptions {
+        // Desugared java.time / streams / comparators keep working on API 26+.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -225,6 +229,9 @@ dependencies {
     
     // OpenAI SDK
     implementation("com.openai:openai-java:4.14.0")
+
+    // Java 8+ library desugaring for minSdk 26 (see compileOptions above).
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
     // Gson — JSON codec for the Gemini Live (BidiGenerateContent) WebSocket
     // protocol models. The rest of the app uses kotlinx.serialization /

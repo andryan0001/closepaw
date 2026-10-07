@@ -7,6 +7,8 @@ import android.hardware.display.VirtualDisplay
 import android.media.Image
 import android.media.ImageReader
 import android.media.projection.MediaProjection
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -40,11 +42,25 @@ class GeminiScreenCaster(
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
     private var captureJob: Job? = null
+    private var projectionCallback: MediaProjection.Callback? = null
 
     fun startCasting(scope: CoroutineScope) {
         if (captureJob != null) return
         val scaledWidth = (screenWidth / 2).coerceAtLeast(MIN_WIDTH)
         val scaledHeight = (screenHeight / 2).coerceAtLeast(MIN_HEIGHT)
+
+        // Android 14+ (API 34) throws IllegalStateException from
+        // createVirtualDisplay unless a MediaProjection.Callback is
+        // registered first. Registering on all API levels (21+) is harmless
+        // and also surfaces user-initiated stops via onStop().
+        val callback = object : MediaProjection.Callback() {
+            override fun onStop() {
+                stop()
+            }
+        }
+        projectionCallback = callback
+        val mainHandler = Handler(Looper.getMainLooper())
+        mediaProjection.registerCallback(callback, mainHandler)
 
         val reader = ImageReader.newInstance(scaledWidth, scaledHeight, PixelFormat.RGBA_8888, 2)
         imageReader = reader
@@ -56,7 +72,7 @@ class GeminiScreenCaster(
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             reader.surface,
             null,
-            null,
+            mainHandler,
         )
 
         captureJob = scope.launch(Dispatchers.Default) {
@@ -117,6 +133,13 @@ class GeminiScreenCaster(
         } finally {
             imageReader = null
         }
+        projectionCallback?.let { callback ->
+            try {
+                mediaProjection.unregisterCallback(callback)
+            } catch (_: Exception) {
+            }
+        }
+        projectionCallback = null
         try {
             mediaProjection.stop()
         } catch (_: Exception) {
